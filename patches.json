@@ -1,0 +1,7 @@
+[
+    {
+        "filename": "CryptConnection.py",
+        "patchDir": "src/Crypt",
+        "patchUrl": "https://raw.githubusercontent.com/canewsin/ZeroNet/py3-patches/CryptConnection.py"
+    }
+]
