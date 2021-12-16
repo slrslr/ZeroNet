@@ -13,7 +13,7 @@ import time
 class Config(object):
 
     def __init__(self, argv):
-        self.version = "0.7.6-internal"
+        self.version = "0.7.6-internal 2"
         self.rev = 4560
         self.argv = argv
         self.action = None
