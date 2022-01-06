@@ -165,7 +165,7 @@ class FileRequest(object):
                 peer = site.addPeer(self.connection.ip, self.connection.port, return_peer=True, source="update")  # Add or get peer
                 # On complete publish to other peers
                 diffs = params.get("diffs", {})
-                site.onComplete.once(lambda: site.publish(inner_path=inner_path, diffs=diffs, limit=6), "publish_%s" % inner_path)
+                site.onComplete.once(lambda: site.publish(inner_path=inner_path, diffs=diffs), "publish_%s" % inner_path)
 
                 # Load new content file and download changed files in new thread
                 def downloader():
@@ -376,7 +376,7 @@ class FileRequest(object):
 
         for hash_id, peers in found.items():
             for peer in peers:
-                ip_type = helper.getIpType(peer.ip)
+                ip_type = self.server.getIpType(peer.ip)
                 if len(back[ip_type][hash_id]) < 20:
                     back[ip_type][hash_id].append(peer.packMyAddress())
         return back
@@ -430,7 +430,7 @@ class FileRequest(object):
 
     # Check requested port of the other peer
     def actionCheckport(self, params):
-        if helper.getIpType(self.connection.ip) == "ipv6":
+        if self.server.getIpType(self.connection.ip) == "ipv6":
             sock_address = (self.connection.ip, params["port"], 0, 0)
         else:
             sock_address = (self.connection.ip, params["port"])

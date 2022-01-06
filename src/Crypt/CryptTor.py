@@ -52,6 +52,7 @@ def verify(data, publickey, sign):
     return valid
 
 def privatekeyToPublickey(privatekey):
+    from Crypt import CryptEd25519
     import rsa
     from rsa import pkcs1
     from lib import Ed25519

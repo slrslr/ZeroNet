@@ -20,17 +20,18 @@ if config.use_tempfiles:
 # Communicate remote peers
 @PluginManager.acceptPlugins
 class Peer(object):
-    __slots__ = (
-        "ip", "port", "site", "key", "connection", "connection_server", "time_found", "time_response", "time_hashfield",
-        "time_added", "has_hashfield", "is_tracker_connection", "time_my_hashfield_sent", "last_ping", "reputation",
-        "last_content_json_update", "hashfield", "connection_error", "hash_failed", "download_bytes", "download_time"
-    )
-
     def __init__(self, ip, port, site=None, connection_server=None):
         self.ip = ip
         self.port = port
         self.site = site
         self.key = "%s:%s" % (ip, port)
+
+        self.ip_type = None
+
+        self.removed = False
+
+        self.log_level = logging.DEBUG
+        self.connection_error_log_level = logging.DEBUG
 
         self.connection = None
         self.connection_server = connection_server
@@ -38,17 +39,22 @@ class Peer(object):
         self.time_hashfield = None  # Last time peer's hashfiled downloaded
         self.time_my_hashfield_sent = None  # Last time my hashfield sent to peer
         self.time_found = time.time()  # Time of last found in the torrent tracker
-        self.time_response = None  # Time of last successful response from peer
+        self.time_response = 0 # Time of last successful response from peer
         self.time_added = time.time()
         self.last_ping = None  # Last response time for ping
+        self.last_pex = 0  # Last query/response time for pex
         self.is_tracker_connection = False  # Tracker connection instead of normal peer
         self.reputation = 0  # More likely to connect if larger
         self.last_content_json_update = 0.0  # Modify date of last received content.json
+        self.protected = 0
+        self.reachable = None
 
         self.connection_error = 0  # Series of connection error
         self.hash_failed = 0  # Number of bad files from peer
         self.download_bytes = 0  # Bytes downloaded
         self.download_time = 0  # Time spent to download
+
+        self.protectedRequests = ["getFile", "streamFile", "update", "listModified"]
 
     def __getattr__(self, key):
         if key == "hashfield":
@@ -56,15 +62,93 @@ class Peer(object):
             self.hashfield = PeerHashfield()
             return self.hashfield
         else:
-            return getattr(self, key)
+            # Raise appropriately formatted attribute error
+            return object.__getattribute__(self, key)
 
-    def log(self, text):
-        if not config.verbose:
-            return  # Only log if we are in debug mode
+    def log(self, text, log_level = None):
+        if log_level is None:
+            log_level = self.log_level
+        if log_level <= logging.DEBUG:
+            if not config.verbose:
+                return  # Only log if we are in debug mode
+
+        logger = None
+
         if self.site:
-            self.site.log.debug("%s:%s %s" % (self.ip, self.port, text))
+            logger = self.site.log
         else:
-            logging.debug("%s:%s %s" % (self.ip, self.port, text))
+            logger = logging.getLogger()
+
+        logger.log(log_level, "%s:%s %s" % (self.ip, self.port, text))
+
+    # Protect connection from being closed by site.cleanupPeers()
+    def markProtected(self, interval=60*2):
+        self.protected = max(self.protected, time.time() + interval)
+
+    def isProtected(self):
+        if self.protected > 0:
+            if self.protected < time.time():
+                self.protected = 0
+        return self.protected > 0
+
+    def isTtlExpired(self, ttl):
+        last_activity = max(self.time_found, self.time_response)
+        return (time.time() - last_activity) > ttl
+
+    # Since 0.8.0
+    def isConnected(self):
+        if self.connection and not self.connection.connected:
+            self.connection = None
+        return self.connection and self.connection.connected
+
+    # Peer proved to to be connectable recently
+    # Since 0.8.0
+    def isConnectable(self):
+        if self.connection_error >= 1:  # The last connection attempt failed
+            return False
+        if time.time() - self.time_response > 60 * 60 * 2:  # Last successful response more than 2 hours ago
+            return False
+        return self.isReachable()
+
+    # Since 0.8.0
+    def isReachable(self):
+        if self.reachable is None:
+            self.updateCachedState()
+        return self.reachable
+
+    # Since 0.8.0
+    def getIpType(self):
+        if not self.ip_type:
+            self.updateCachedState()
+        return self.ip_type
+
+    # We cache some ConnectionServer-related state for better performance.
+    # This kind of state currently doesn't change during a program session,
+    # and it's safe to read and cache it just once. But future versions
+    # may bring more pieces of dynamic configuration. So we update the state
+    # on each peer.found().
+    def updateCachedState(self):
+        connection_server = self.getConnectionServer()
+        if not self.port or self.port == 1: # Port 1 considered as "no open port"
+            self.reachable = False
+        else:
+            self.reachable = connection_server.isIpReachable(self.ip)
+        self.ip_type = connection_server.getIpType(self.ip)
+
+
+    # FIXME:
+    # This should probably be changed.
+    # When creating a peer object, the caller must provide either `connection_server`,
+    # or `site`, so Peer object is able to use `site.connection_server`.
+    def getConnectionServer(self):
+        if self.connection_server:
+            connection_server = self.connection_server
+        elif self.site:
+            connection_server = self.site.connection_server
+        else:
+            import main
+            connection_server = main.file_server
+        return connection_server
 
     # Connect to host
     def connect(self, connection=None):
@@ -87,29 +171,30 @@ class Peer(object):
             self.connection = None
 
             try:
-                if self.connection_server:
-                    connection_server = self.connection_server
-                elif self.site:
-                    connection_server = self.site.connection_server
-                else:
-                    import main
-                    connection_server = main.file_server
+                connection_server = self.getConnectionServer()
                 self.connection = connection_server.getConnection(self.ip, self.port, site=self.site, is_tracker_connection=self.is_tracker_connection)
-                self.reputation += 1
-                self.connection.sites += 1
+                if self.connection and self.connection.connected:
+                    self.reputation += 1
+                    self.connection.sites += 1
             except Exception as err:
                 self.onConnectionError("Getting connection error")
                 self.log("Getting connection error: %s (connection_error: %s, hash_failed: %s)" %
-                         (Debug.formatException(err), self.connection_error, self.hash_failed))
+                         (Debug.formatException(err), self.connection_error, self.hash_failed),
+                         log_level=self.connection_error_log_level)
                 self.connection = None
         return self.connection
+
+    def disconnect(self, reason="Unknown"):
+        if self.connection:
+            self.connection.close(reason)
+            self.connection = None
 
     # Check if we have connection to peer
     def findConnection(self):
         if self.connection and self.connection.connected:  # We have connection to peer
             return self.connection
         else:  # Try to find from other sites connections
-            self.connection = self.site.connection_server.getConnection(self.ip, self.port, create=False, site=self.site)
+            self.connection = self.getConnectionServer().getConnection(self.ip, self.port, create=False, site=self.site)
             if self.connection:
                 self.connection.sites += 1
         return self.connection
@@ -143,9 +228,13 @@ class Peer(object):
         if source in ("tracker", "local"):
             self.site.peers_recent.appendleft(self)
         self.time_found = time.time()
+        self.updateCachedState()
 
     # Send a command to peer and return response value
     def request(self, cmd, params={}, stream_to=None):
+        if self.removed:
+            return False
+
         if not self.connection or self.connection.closed:
             self.connect()
             if not self.connection:
@@ -156,6 +245,8 @@ class Peer(object):
 
         for retry in range(1, 4):  # Retry 3 times
             try:
+                if cmd in self.protectedRequests:
+                    self.markProtected()
                 if not self.connection:
                     raise Exception("No connection found")
                 res = self.connection.request(cmd, params, stream_to)
@@ -188,6 +279,9 @@ class Peer(object):
 
     # Get a file content from peer
     def getFile(self, site, inner_path, file_size=None, pos_from=0, pos_to=None, streaming=False):
+        if self.removed:
+            return False
+
         if file_size and file_size > 5 * 1024 * 1024:
             max_read_size = 1024 * 1024
         else:
@@ -241,11 +335,14 @@ class Peer(object):
         return buff
 
     # Send a ping request
-    def ping(self):
+    def ping(self, timeout=10.0, tryes=3):
+        if self.removed:
+            return False
+
         response_time = None
-        for retry in range(1, 3):  # Retry 3 times
+        for retry in range(1, tryes):  # Retry 3 times
             s = time.time()
-            with gevent.Timeout(10.0, False):  # 10 sec timeout, don't raise exception
+            with gevent.Timeout(timeout, False):
                 res = self.request("ping")
 
                 if res and "body" in res and res["body"] == b"Pong!":
@@ -264,9 +361,17 @@ class Peer(object):
         return response_time
 
     # Request peer exchange from peer
-    def pex(self, site=None, need_num=5):
+    def pex(self, site=None, need_num=5, request_interval=60*2):
+        if self.removed:
+            return False
+
         if not site:
             site = self.site  # If no site defined request peers for this site
+
+        if self.last_pex + request_interval >= time.time():
+            return False
+
+        self.last_pex = time.time()
 
         # give back 5 connectible peers
         packed_peers = helper.packPeers(self.site.getConnectablePeers(5, allow_private=False))
@@ -276,6 +381,7 @@ class Peer(object):
         if packed_peers["ipv6"]:
             request["peers_ipv6"] = packed_peers["ipv6"]
         res = self.request("pex", request)
+        self.last_pex = time.time()
         if not res or "error" in res:
             return False
         added = 0
@@ -307,9 +413,14 @@ class Peer(object):
     # List modified files since the date
     # Return: {inner_path: modification date,...}
     def listModified(self, since):
+        if self.removed:
+            return False
         return self.request("listModified", {"since": since, "site": self.site.address})
 
     def updateHashfield(self, force=False):
+        if self.removed:
+            return False
+
         # Don't update hashfield again in 5 min
         if self.time_hashfield and time.time() - self.time_hashfield < 5 * 60 and not force:
             return False
@@ -325,6 +436,9 @@ class Peer(object):
     # Find peers for hashids
     # Return: {hash1: ["ip:port", "ip:port",...],...}
     def findHashIds(self, hash_ids):
+        if self.removed:
+            return False
+
         res = self.request("findHashIds", {"site": self.site.address, "hash_ids": hash_ids})
         if not res or "error" in res or type(res) is not dict:
             return False
@@ -368,6 +482,9 @@ class Peer(object):
             return True
 
     def publish(self, address, inner_path, body, modified, diffs=[]):
+        if self.removed:
+            return False
+
         if len(body) > 10 * 1024 and self.connection and self.connection.handshake.get("rev", 0) >= 4095:
             # To save bw we don't push big content.json to peers
             body = b""
@@ -382,20 +499,22 @@ class Peer(object):
 
     # Stop and remove from site
     def remove(self, reason="Removing"):
-        self.log("Removing peer...Connection error: %s, Hash failed: %s" % (self.connection_error, self.hash_failed))
-        if self.site and self.key in self.site.peers:
-            del(self.site.peers[self.key])
+        self.removed = True
+        self.log("Removing peer with reason: <%s>. Connection error: %s, Hash failed: %s" % (reason, self.connection_error, self.hash_failed))
+        if self.site:
+            self.site.deregisterPeer(self)
+            # No way: self.site = None
+            # We don't assign None to self.site here because it leads to random exceptions in various threads,
+            # that hold references to the peer and still believe it belongs to the site.
 
-        if self.site and self in self.site.peers_recent:
-            self.site.peers_recent.remove(self)
-
-        if self.connection:
-            self.connection.close(reason)
+        self.disconnect(reason)
 
     # - EVENTS -
 
     # On connection error
     def onConnectionError(self, reason="Unknown"):
+        if not self.getConnectionServer().isInternetOnline():
+            return
         self.connection_error += 1
         if self.site and len(self.site.peers) > 200:
             limit = 3
@@ -403,7 +522,7 @@ class Peer(object):
             limit = 6
         self.reputation -= 1
         if self.connection_error >= limit:  # Dead peer
-            self.remove("Peer connection: %s" % reason)
+            self.remove("Connection error limit reached: %s. Provided message: %s" % (limit, reason))
 
     # Done working with peer
     def onWorkerDone(self):

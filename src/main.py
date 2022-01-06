@@ -4,6 +4,7 @@ import sys
 import stat
 import time
 import logging
+import loglevel_overrides
 
 startup_errors = []
 def startupError(msg):
@@ -154,7 +155,7 @@ class Actions(object):
 
         logging.info("Starting servers....")
         gevent.joinall([gevent.spawn(ui_server.start), gevent.spawn(file_server.start)])
-        logging.info("All server stopped")
+        logging.info("All servers stopped")
 
     # Site commands
 

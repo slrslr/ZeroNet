@@ -24,6 +24,25 @@ thread_pool_fs_read = ThreadPool.ThreadPool(config.threads_fs_read, name="FS rea
 thread_pool_fs_write = ThreadPool.ThreadPool(config.threads_fs_write, name="FS write")
 thread_pool_fs_batch = ThreadPool.ThreadPool(1, name="FS batch")
 
+class VerifyFiles_Notificator(object):
+    def __init__(self, site, quick_check):
+        self.site = site
+        self.quick_check = quick_check
+        self.scanned_files = 0
+        self.websocket_update_interval = 0.25
+        self.websocket_update_time = time.time()
+
+    def inc(self):
+        self.scanned_files += 1
+        if self.websocket_update_time + self.websocket_update_interval < time.time():
+            self.send()
+
+    def send(self):
+        self.websocket_update_time = time.time()
+        if self.quick_check:
+            self.site.updateWebsocket(checking=self.scanned_files)
+        else:
+            self.site.updateWebsocket(verifying=self.scanned_files)
 
 @PluginManager.acceptPlugins
 class SiteStorage(object):
@@ -356,7 +375,7 @@ class SiteStorage(object):
             # Reopen DB to check changes
             if self.has_db:
                 self.closeDb("New dbschema")
-                gevent.spawn(self.getDb)
+                self.site.spawn(self.getDb)
         elif not config.disable_db and should_load_to_db and self.has_db:  # Load json file to db
             if config.verbose:
                 self.log.debug("Loading json file to db: %s (file: %s)" % (inner_path, file))
@@ -420,6 +439,8 @@ class SiteStorage(object):
         return inner_path
 
     # Verify all files sha512sum using content.json
+    # The result may not be accurate if self.site.isStopping().
+    # verifyFiles() return immediately in that case.
     def verifyFiles(self, quick_check=False, add_optional=False, add_changed=True):
         bad_files = []
         back = defaultdict(int)
@@ -431,17 +452,55 @@ class SiteStorage(object):
             self.log.debug("VerifyFile content.json not exists")
             self.site.needFile("content.json", update=True)  # Force update to fix corrupt file
             self.site.content_manager.loadContent()  # Reload content.json
-        for content_inner_path, content in list(self.site.content_manager.contents.items()):
+
+        # Trying to read self.site.content_manager.contents without being stuck
+        # on reading the long file list and also without getting
+        # "RuntimeError: dictionary changed size during iteration"
+        # We can't use just list(iteritems()) since it loads all the contents files
+        # at once and gets unresponsive.
+        contents = {}
+        notificator = None
+        tries = 0
+        max_tries = 40
+        stop = False
+        while not stop:
+            try:
+                contents = {}
+                notificator = VerifyFiles_Notificator(self.site, quick_check)
+                for content_inner_path, content in self.site.content_manager.contents.iteritems():
+                    notificator.inc()
+                    contents[content_inner_path] = content
+                    if self.site.isStopping():
+                        stop = True
+                        break
+                stop = True
+            except RuntimeError as err:
+                if "changed size during iteration" in str(err):
+                    tries += 1
+                    if tries >= max_tries:
+                        self.log.info("contents.json file list changed during iteration. %s tries done. Giving up.", tries)
+                        stop = True
+                    self.log.info("contents.json file list changed during iteration. Trying again... (%s)", tries)
+                    time.sleep(2 * tries)
+                else:
+                    stop = True
+
+        for content_inner_path, content in contents.items():
             back["num_content"] += 1
             i += 1
             if i % 50 == 0:
                 time.sleep(0.001)  # Context switch to avoid gevent hangs
+
+            if self.site.isStopping():
+                break
+
             if not os.path.isfile(self.getPath(content_inner_path)):  # Missing content.json file
                 back["num_content_missing"] += 1
                 self.log.debug("[MISSING] %s" % content_inner_path)
                 bad_files.append(content_inner_path)
 
             for file_relative_path in list(content.get("files", {}).keys()):
+                notificator.inc()
                 back["num_file"] += 1
                 file_inner_path = helper.getDirname(content_inner_path) + file_relative_path  # Relative to site dir
                 file_inner_path = file_inner_path.strip("/")  # Strip leading /
@@ -452,14 +511,19 @@ class SiteStorage(object):
                     bad_files.append(file_inner_path)
                     continue
 
+                err = None
+
                 if quick_check:
-                    ok = os.path.getsize(file_path) == content["files"][file_relative_path]["size"]
+                    file_size = os.path.getsize(file_path)
+                    expected_size = content["files"][file_relative_path]["size"]
+                    ok = file_size == expected_size
                     if not ok:
-                        err = "Invalid size"
+                        err = "Invalid size: %s - actual, %s - expected" % (file_size, expected_size)
                 else:
                     try:
                         ok = self.site.content_manager.verifyFile(file_inner_path, open(file_path, "rb"))
-                    except Exception as err:
+                    except Exception as err2:
+                        err = err2
                         ok = False
 
                 if not ok:
@@ -472,6 +536,7 @@ class SiteStorage(object):
             optional_added = 0
             optional_removed = 0
             for file_relative_path in list(content.get("files_optional", {}).keys()):
+                notificator.inc()
                 back["num_optional"] += 1
                 file_node = content["files_optional"][file_relative_path]
                 file_inner_path = helper.getDirname(content_inner_path) + file_relative_path  # Relative to site dir
@@ -515,6 +580,8 @@ class SiteStorage(object):
                     "%s verified: %s, quick: %s, optionals: +%s -%s" %
                     (content_inner_path, len(content["files"]), quick_check, optional_added, optional_removed)
                 )
+
+        notificator.send()
 
         self.site.content_manager.contents.db.processDelayed()
         time.sleep(0.001)  # Context switch to avoid gevent hangs

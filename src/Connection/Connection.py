@@ -17,12 +17,13 @@ from util import helper
 class Connection(object):
     __slots__ = (
         "sock", "sock_wrapped", "ip", "port", "cert_pin", "target_onion", "id", "protocol", "type", "server", "unpacker", "unpacker_bytes", "req_id", "ip_type",
-        "handshake", "crypt", "connected", "event_connected", "closed", "start_time", "handshake_time", "last_recv_time", "is_private_ip", "is_tracker_connection",
+        "handshake", "crypt", "connected", "connecting", "event_connected", "closed", "start_time", "handshake_time", "last_recv_time", "is_private_ip", "is_tracker_connection",
         "last_message_time", "last_send_time", "last_sent_time", "incomplete_buff_recv", "bytes_recv", "bytes_sent", "cpu_time", "send_lock",
         "last_ping_delay", "last_req_time", "last_cmd_sent", "last_cmd_recv", "bad_actions", "sites", "name", "waiting_requests", "waiting_streams"
     )
 
     def __init__(self, server, ip, port, sock=None, target_onion=None, is_tracker_connection=False):
+        self.server = server
         self.sock = sock
         self.cert_pin = None
         if "#" in ip:
@@ -42,7 +43,6 @@ class Connection(object):
             self.is_private_ip = False
         self.is_tracker_connection = is_tracker_connection
 
-        self.server = server
         self.unpacker = None  # Stream incoming socket messages here
         self.unpacker_bytes = 0  # How many bytes the unpacker received
         self.req_id = 0  # Last request id
@@ -50,6 +50,7 @@ class Connection(object):
         self.crypt = None  # Connection encryption method
         self.sock_wrapped = False  # Socket wrapped to encryption
 
+        self.connecting = False
         self.connected = False
         self.event_connected = gevent.event.AsyncResult()  # Solves on handshake received
         self.closed = False
@@ -81,11 +82,11 @@ class Connection(object):
 
     def setIp(self, ip):
         self.ip = ip
-        self.ip_type = helper.getIpType(ip)
+        self.ip_type = self.server.getIpType(ip)
         self.updateName()
 
     def createSocket(self):
-        if helper.getIpType(self.ip) == "ipv6" and not hasattr(socket, "socket_noproxy"):
+        if self.server.getIpType(self.ip) == "ipv6" and not hasattr(socket, "socket_noproxy"):
             # Create IPv6 connection as IPv4 when using proxy
             return socket.socket(socket.AF_INET6, socket.SOCK_STREAM)
         else:
@@ -118,13 +119,28 @@ class Connection(object):
 
     # Open connection to peer and wait for handshake
     def connect(self):
+        self.connecting = True
+        try:
+            return self._connect()
+        except Exception as err:
+            self.connecting = False
+            self.connected = False
+            raise
+
+    def _connect(self):
+        self.updateOnlineStatus(outgoing_activity=True)
+
+        if not self.event_connected or self.event_connected.ready():
+            self.event_connected = gevent.event.AsyncResult()
+
         self.type = "out"
+
+        unreachability = self.server.getIpUnreachability(self.ip)
+        if unreachability:
+            raise Exception(unreachability)
+
         if self.ip_type == "onion":
-            if not self.server.tor_manager or not self.server.tor_manager.enabled:
-                raise Exception("Can't connect to onion addresses, no Tor controller present")
             self.sock = self.server.tor_manager.createSocket(self.ip, self.port)
-        elif config.tor == "always" and helper.isPrivateIp(self.ip) and self.ip not in config.ip_local:
-            raise Exception("Can't connect to local IPs in Tor: always mode")
         elif config.trackers_proxy != "disable" and config.tor != "always" and self.is_tracker_connection:
             if config.trackers_proxy == "tor":
                 self.sock = self.server.tor_manager.createSocket(self.ip, self.port)
@@ -148,36 +164,55 @@ class Connection(object):
 
         self.sock.connect(sock_address)
 
-        # Implicit SSL
-        should_encrypt = not self.ip_type == "onion" and self.ip not in self.server.broken_ssl_ips and self.ip not in config.ip_local
-        if self.cert_pin:
-            self.sock = CryptConnection.manager.wrapSocket(self.sock, "tls-rsa", cert_pin=self.cert_pin)
-            self.sock.do_handshake()
-            self.crypt = "tls-rsa"
-            self.sock_wrapped = True
-        elif should_encrypt and "tls-rsa" in CryptConnection.manager.crypt_supported:
+        if self.shouldEncrypt():
             try:
-                self.sock = CryptConnection.manager.wrapSocket(self.sock, "tls-rsa")
-                self.sock.do_handshake()
-                self.crypt = "tls-rsa"
-                self.sock_wrapped = True
+                self.wrapSocket()
             except Exception as err:
-                if not config.force_encryption:
-                    self.log("Crypt connection error, adding %s:%s as broken ssl. %s" % (self.ip, self.port, Debug.formatException(err)))
-                    self.server.broken_ssl_ips[self.ip] = True
-                self.sock.close()
-                self.crypt = None
-                self.sock = self.createSocket()
-                self.sock.settimeout(30)
-                self.sock.connect(sock_address)
+                if self.sock:
+                    self.sock.close()
+                    self.sock = None
+                if self.mustEncrypt():
+                    raise
+                self.log("Crypt connection error, adding %s:%s as broken ssl. %s" % (self.ip, self.port, Debug.formatException(err)))
+                self.server.broken_ssl_ips[self.ip] = True
+                return self.connect()
 
         # Detect protocol
-        self.send({"cmd": "handshake", "req_id": 0, "params": self.getHandshakeInfo()})
         event_connected = self.event_connected
-        gevent.spawn(self.messageLoop)
+        self.send({"cmd": "handshake", "req_id": 0, "params": self.getHandshakeInfo()})
+        self.server.outgoing_pool.spawn(self.messageLoop)
         connect_res = event_connected.get()  # Wait for handshake
-        self.sock.settimeout(timeout_before)
+        if self.sock:
+            self.sock.settimeout(timeout_before)
         return connect_res
+
+    def mustEncrypt(self):
+        if self.cert_pin:
+            return True
+        if (not self.ip_type == "onion") and config.force_encryption:
+            return True
+        return False
+
+    def shouldEncrypt(self):
+        if self.mustEncrypt():
+            return True
+        return (
+            (not self.ip_type == "onion")
+            and
+            (self.ip not in self.server.broken_ssl_ips)
+            and
+            (self.ip not in config.ip_local)
+            and
+            ("tls-rsa" in CryptConnection.manager.crypt_supported)
+        )
+
+    def wrapSocket(self, crypt="tls-rsa", do_handshake=True):
+        server = (self.type == "in")
+        sock = CryptConnection.manager.wrapSocket(self.sock, crypt, server=server, cert_pin=self.cert_pin)
+        sock.do_handshake()
+        self.crypt = crypt
+        self.sock_wrapped = True
+        self.sock = sock
 
     # Handle incoming connection
     def handleIncomingConnection(self, sock):
@@ -192,9 +227,7 @@ class Connection(object):
                 first_byte = sock.recv(1, gevent.socket.MSG_PEEK)
                 if first_byte == b"\x16":
                     self.log("Crypt in connection using implicit SSL")
-                    self.sock = CryptConnection.manager.wrapSocket(self.sock, "tls-rsa", True)
-                    self.sock_wrapped = True
-                    self.crypt = "tls-rsa"
+                    self.wrapSocket(do_handshake=False)
             except Exception as err:
                 self.log("Socket peek error: %s" % Debug.formatException(err))
         self.messageLoop()
@@ -213,6 +246,7 @@ class Connection(object):
         self.protocol = "v2"
         self.updateName()
         self.connected = True
+        self.connecting = False
         buff_len = 0
         req_len = 0
         self.unpacker_bytes = 0
@@ -435,13 +469,13 @@ class Connection(object):
             self.updateName()
 
         self.event_connected.set(True)  # Mark handshake as done
-        self.event_connected = None
         self.handshake_time = time.time()
 
     # Handle incoming message
     def handleMessage(self, message):
         cmd = message["cmd"]
 
+        self.updateOnlineStatus(successful_activity=True)
         self.last_message_time = time.time()
         self.last_cmd_recv = cmd
         if cmd == "response":  # New style response
@@ -458,12 +492,10 @@ class Connection(object):
                 self.last_ping_delay = ping
                 # Server switched to crypt, lets do it also if not crypted already
                 if message.get("crypt") and not self.sock_wrapped:
-                    self.crypt = message["crypt"]
+                    crypt = message["crypt"]
                     server = (self.type == "in")
-                    self.log("Crypt out connection using: %s (server side: %s, ping: %.3fs)..." % (self.crypt, server, ping))
-                    self.sock = CryptConnection.manager.wrapSocket(self.sock, self.crypt, server, cert_pin=self.cert_pin)
-                    self.sock.do_handshake()
-                    self.sock_wrapped = True
+                    self.log("Crypt out connection using: %s (server side: %s, ping: %.3fs)..." % (crypt, server, ping))
+                    self.wrapSocket(crypt)
 
                 if not self.sock_wrapped and self.cert_pin:
                     self.close("Crypt connection error: Socket not encrypted, but certificate pin present")
@@ -491,8 +523,7 @@ class Connection(object):
             server = (self.type == "in")
             self.log("Crypt in connection using: %s (server side: %s)..." % (self.crypt, server))
             try:
-                self.sock = CryptConnection.manager.wrapSocket(self.sock, self.crypt, server, cert_pin=self.cert_pin)
-                self.sock_wrapped = True
+                self.wrapSocket(self.crypt)
             except Exception as err:
                 if not config.force_encryption:
                     self.log("Crypt connection error, adding %s:%s as broken ssl. %s" % (self.ip, self.port, Debug.formatException(err)))
@@ -504,6 +535,7 @@ class Connection(object):
 
     # Send data to connection
     def send(self, message, streaming=False):
+        self.updateOnlineStatus(outgoing_activity=True)
         self.last_send_time = time.time()
         if config.debug_socket:
             self.log("Send: %s, to: %s, streaming: %s, site: %s, inner_path: %s, req_id: %s" % (
@@ -543,6 +575,11 @@ class Connection(object):
                 message = None
                 with self.send_lock:
                     self.sock.sendall(data)
+            # XXX: Should not be used here:
+            # self.updateOnlineStatus(successful_activity=True)
+            # Looks like self.sock.sendall() returns normally, instead of
+            # raising an Exception (at least, some times).
+            # So the only way of detecting the network activity is self.handleMessage()
         except Exception as err:
             self.close("Send error: %s (cmd: %s)" % (err, stat_key))
             return False
@@ -584,7 +621,8 @@ class Connection(object):
         self.waiting_requests[self.req_id] = {"evt": event, "cmd": cmd}
         if stream_to:
             self.waiting_streams[self.req_id] = stream_to
-        self.send(data)  # Send request
+        if not self.send(data):  # Send request
+            return False
         res = event.get()  # Wait until event solves
         return res
 
@@ -608,6 +646,7 @@ class Connection(object):
             return False  # Already closed
         self.closed = True
         self.connected = False
+        self.connecting = False
         if self.event_connected:
             self.event_connected.set(False)
 
@@ -633,3 +672,12 @@ class Connection(object):
         self.sock = None
         self.unpacker = None
         self.event_connected = None
+        self.crypt = None
+        self.sock_wrapped = False
+
+        return True
+
+    def updateOnlineStatus(self, outgoing_activity=False, successful_activity=False):
+        self.server.updateOnlineStatus(self,
+            outgoing_activity=outgoing_activity,
+            successful_activity=successful_activity)

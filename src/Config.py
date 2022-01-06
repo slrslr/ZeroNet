@@ -82,6 +82,17 @@ class Config(object):
         from Crypt import CryptHash
         access_key_default = CryptHash.random(24, "base64") # Used to allow restrited plugins when multiuser plugin is enabled
         trackers = [
+            # by zeroseed at http://127.0.0.1:43110/19HKdTAeBh5nRiKn791czY7TwRB1QNrf1Q/?:users/1HvNGwHKqhj3ZMEM53tz6jbdqe4LRpanEu:zn:dc17f896-bf3f-4962-bdd4-0a470040c9c5
+            "zero://k5w77dozo3hy5zualyhni6vrh73iwfkaofa64abbilwyhhd3wgenbjqd.onion:15441",
+            "zero://2kcb2fqesyaevc4lntogupa4mkdssth2ypfwczd2ov5a3zo6ytwwbayd.onion:15441",
+            "zero://my562dxpjropcd5hy3nd5pemsc4aavbiptci5amwxzbelmzgkkuxpvid.onion:15441",
+            "zero://pn4q2zzt2pw4nk7yidxvsxmydko7dfibuzxdswi6gu6ninjpofvqs2id.onion:15441",
+            "zero://6i54dd5th73oelv636ivix6sjnwfgk2qsltnyvswagwphub375t3xcad.onion:15441",
+            "zero://tl74auz4tyqv4bieeclmyoe4uwtoc2dj7fdqv4nc4gl5j2bwg2r26bqd.onion:15441",
+            "zero://wlxav3szbrdhest4j7dib2vgbrd7uj7u7rnuzg22cxbih7yxyg2hsmid.onion:15441",
+            "zero://zy7wttvjtsijt5uwmlar4yguvjc2gppzbdj4v6bujng6xwjmkdg7uvqd.onion:15441",
+
+            # ZeroNet 0.7.2 defaults:
             "zero://boot3rdez4rzn36x.onion:15441",
             "http://open.acgnxtracker.com:80/announce",  # DE
             "http://tracker.bt4g.com:2095/announce",  # Cloudflare
@@ -275,9 +286,28 @@ class Config(object):
 
         self.parser.add_argument('--size_limit', help='Default site size limit in MB', default=10, type=int, metavar='limit')
         self.parser.add_argument('--file_size_limit', help='Maximum per file size limit in MB', default=10, type=int, metavar='limit')
-        self.parser.add_argument('--connected_limit', help='Max connected peer per site', default=8, type=int, metavar='connected_limit')
-        self.parser.add_argument('--global_connected_limit', help='Max connections', default=512, type=int, metavar='global_connected_limit')
+        self.parser.add_argument('--connected_limit', help='Max number of connected peers per site. Soft limit.', default=10, type=int, metavar='connected_limit')
+        self.parser.add_argument('--global_connected_limit', help='Max number of connections. Soft limit.', default=512, type=int, metavar='global_connected_limit')
         self.parser.add_argument('--workers', help='Download workers per site', default=5, type=int, metavar='workers')
+
+        self.parser.add_argument('--site_announce_interval_min', help='Site announce interval for the most active sites, in minutes.', default=4, type=int, metavar='site_announce_interval_min')
+        self.parser.add_argument('--site_announce_interval_max', help='Site announce interval for inactive sites, in minutes.', default=30, type=int, metavar='site_announce_interval_max')
+
+        self.parser.add_argument('--site_peer_check_interval_min', help='Connectable peers check interval for the most active sites, in minutes.', default=5, type=int, metavar='site_peer_check_interval_min')
+        self.parser.add_argument('--site_peer_check_interval_max', help='Connectable peers check interval for inactive sites, in minutes.', default=20, type=int, metavar='site_peer_check_interval_max')
+
+        self.parser.add_argument('--site_update_check_interval_min', help='Site update check interval for the most active sites, in minutes.', default=5, type=int, metavar='site_update_check_interval_min')
+        self.parser.add_argument('--site_update_check_interval_max', help='Site update check interval for inactive sites, in minutes.', default=45, type=int, metavar='site_update_check_interval_max')
+
+        self.parser.add_argument('--site_connectable_peer_count_max', help='Search for as many connectable peers for the most active sites', default=10, type=int, metavar='site_connectable_peer_count_max')
+        self.parser.add_argument('--site_connectable_peer_count_min', help='Search for as many connectable peers for inactive sites', default=2, type=int, metavar='site_connectable_peer_count_min')
+
+        self.parser.add_argument('--send_back_lru_size', help='Size of the send back LRU cache', default=5000, type=int, metavar='send_back_lru_size')
+        self.parser.add_argument('--send_back_limit', help='Send no more than so many files at once back to peer, when we discovered that the peer held older file versions', default=3, type=int, metavar='send_back_limit')
+
+        self.parser.add_argument('--expose_no_ownership', help='By default, ZeroNet tries checking updates for own sites more frequently. This can be used by a third party for revealing the network addresses of a site owner. If this option is enabled, ZeroNet performs the checks in the same way for any sites.', type='bool', choices=[True, False], default=False)
+
+        self.parser.add_argument('--simultaneous_connection_throttle_threshold', help='Throttle opening new connections when the number of outgoing connections in not fully established state exceeds the threshold.', default=15, type=int, metavar='simultaneous_connection_throttle_threshold')
 
         self.parser.add_argument('--fileserver_ip', help='FileServer bind address', default="*", metavar='ip')
         self.parser.add_argument('--fileserver_port', help='FileServer bind port (0: randomize)', default=0, type=int, metavar='port')

@@ -12,6 +12,8 @@ from . import Debug
 last_error = None
 thread_shutdown = None
 
+thread_shutdown = None
+
 def shutdownThread():
     import main
     try:

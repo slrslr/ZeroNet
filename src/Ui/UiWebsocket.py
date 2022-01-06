@@ -318,6 +318,7 @@ class UiWebsocket(object):
             back["updatesite"] = config.updatesite
             back["dist_type"] = config.dist_type
             back["lib_verify_best"] = CryptBitcoin.lib_verify_best
+            back["passive_mode"] = file_server.passive_mode
         return back
 
     def formatAnnouncerInfo(self, site):
@@ -912,9 +913,9 @@ class UiWebsocket(object):
         self.response(to, "ok")
 
     # Update site content.json
-    def actionSiteUpdate(self, to, address, check_files=False, since=None, announce=False):
+    def actionSiteUpdate(self, to, address, check_files=False, verify_files=False, since=None, announce=False):
         def updateThread():
-            site.update(announce=announce, check_files=check_files, since=since)
+            site.update(announce=announce, check_files=check_files, verify_files=verify_files, since=since)
             self.response(to, "Updated")
 
         site = self.server.sites.get(address)
@@ -1166,6 +1167,32 @@ class UiWebsocket(object):
 
     @flag.admin
     @flag.no_multiuser
+    def actionServerSetPassiveMode(self, to, passive_mode=False):
+        import main
+        file_server = main.file_server
+        if file_server.isPassiveMode() != passive_mode:
+            file_server.setPassiveMode(passive_mode)
+            if file_server.isPassiveMode():
+                self.cmd("notification", ["info", _["Passive mode enabled"], 5000])
+            else:
+                self.cmd("notification", ["info", _["Passive mode disabled"], 5000])
+            self.server.updateWebsocket()
+
+    @flag.admin
+    @flag.no_multiuser
+    def actionServerSetOfflineMode(self, to, offline_mode=False):
+        import main
+        file_server = main.file_server
+        if file_server.isOfflineMode() != offline_mode:
+            file_server.setOfflineMode(offline_mode)
+            if file_server.isOfflineMode():
+                self.cmd("notification", ["info", _["Offline mode enabled"], 5000])
+            else:
+                self.cmd("notification", ["info", _["Offline mode disabled"], 5000])
+            self.server.updateWebsocket()
+
+    @flag.admin
+    @flag.no_multiuser
     def actionServerShutdown(self, to, restart=False):
         import main
         def cbServerShutdown(res):
@@ -1174,7 +1201,7 @@ class UiWebsocket(object):
                 return False
             if restart:
                 main.restart_after_shutdown = True
-            main.file_server.stop()
+            main.file_server.stop(ui_websocket=self)
             main.ui_server.stop()
 
         if restart:
