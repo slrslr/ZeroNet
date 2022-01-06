@@ -61,13 +61,13 @@ class User(object):
         s = time.time()
         address_id = self.getAddressAuthIndex(address)  # Convert site address to int
         auth_privatekey = CryptBitcoin.hdPrivatekey(self.master_seed, address_id)
-        self.getSites()[address] = {
+        self.sites[address] = {
             "auth_address": CryptBitcoin.privatekeyToAddress(auth_privatekey),
             "auth_privatekey": auth_privatekey
         }
         self.saveDelayed()
         self.log.debug("Added new site: %s in %.3fs" % (address, time.time() - s))
-        return self.getSites()[address]
+        return self.sites[address]
 
     # Get user site data
     # Return: {"auth_address": "xxx", "auth_privatekey": "xxx"}
@@ -76,11 +76,11 @@ class User(object):
             if not create:
                 return {"auth_address": None, "auth_privatekey": None}  # Dont create user yet
             self.generateAuthAddress(address)
-        return self.getSites()[address]
+        return self.sites[address]
 
     def deleteSiteData(self, address):
         if address in self.sites:
-            del(self.getSites()[address])
+            del(self.sites[address])
             self.saveDelayed()
             self.log.debug("Deleted site: %s" % address)
 
@@ -101,9 +101,9 @@ class User(object):
             raise Exception("Random error: site exist!")
         # Save to sites
         self.getSiteData(site_address)
-        self.getSites()[site_address]["privatekey"] = site_privatekey
+        self.sites[site_address]["privatekey"] = site_privatekey
         self.save()
-        return site_address, bip32_index, self.getSites()[site_address]
+        return site_address, bip32_index, self.sites[site_address]
 
     # Get BIP32 address from site address
     # Return: BIP32 auth address

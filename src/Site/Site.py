@@ -290,7 +290,7 @@ class Site(object):
         if not SiteManager.site_manager.sites:
             SiteManager.site_manager.sites = {}
         if not SiteManager.site_manager.sites.get(self.address):
-            SiteManager.site_manager.getSites()[self.address] = self
+            SiteManager.site_manager.sites[self.address] = self
             SiteManager.site_manager.load(False)
         SiteManager.site_manager.saveDelayed()
 

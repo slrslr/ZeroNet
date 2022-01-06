@@ -73,7 +73,7 @@ class SiteManager(object):
                     except Exception as err:
                         self.log.debug("Error loading site %s: %s" % (address, err))
                         continue
-                    self.getSites()[address] = site
+                    self.sites[address] = site
                     self.log.debug("Loaded site %s in %.3fs" % (address, time.time() - s))
                     added += 1
                 elif startup:
@@ -88,7 +88,7 @@ class SiteManager(object):
         if cleanup:
             for address in list(self.sites.keys()):
                 if address not in address_found:
-                    del(self.getSites()[address])
+                    del(self.sites[address])
                     self.log.debug("Removed site: %s" % address)
 
             # Remove orpan sites from contentdb
@@ -106,7 +106,7 @@ class SiteManager(object):
                     if address in content_db.site_ids:
                         del content_db.site_ids[address]
                     if address in content_db.sites:
-                        del content_db.getSites()[address]
+                        del content_db.sites[address]
 
         self.loaded = True
         for address, settings in sites_need:
@@ -203,7 +203,7 @@ class SiteManager(object):
         self.log.debug("Added new site: %s" % address)
         config.loadTrackersFile()
         site = Site(address, settings=settings)
-        self.getSites()[address] = site
+        self.sites[address] = site
         if not site.settings["serving"]:  # Maybe it was deleted before
             site.settings["serving"] = True
         site.saveSettings()
@@ -226,7 +226,7 @@ class SiteManager(object):
     def delete(self, address):
         self.sites_changed = int(time.time())
         self.log.debug("Deleted site: %s" % address)
-        del(self.getSites()[address])
+        del(self.sites[address])
         # Delete from sites.json
         self.save()
 
