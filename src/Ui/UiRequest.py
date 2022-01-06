@@ -643,7 +643,7 @@ class UiRequest(object):
 
         if (config.debug or config.merge_media) and file_path.split("/")[-1].startswith("all."):
             # If debugging merge *.css to all.css and *.js to all.js
-            site = self.server.sites.get(address)
+            site = self.server.getSites().get(address)
             if site and site.settings["own"]:
                 from Debug import DebugMedia
                 DebugMedia.merge(file_path)
@@ -734,7 +734,7 @@ class UiRequest(object):
         block = block.replace(b"{themeclass}", themeclass.encode("utf8"))
 
         if path_parts:
-            site = self.server.sites.get(path_parts.get("address"))
+            site = self.server.getSites().get(path_parts.get("address"))
             if site.settings["own"]:
                 modified = int(time.time())
             else:
@@ -823,7 +823,7 @@ class UiRequest(object):
             # Find site by wrapper_key
             wrapper_key = self.get["wrapper_key"]
             site = None
-            for site_check in list(self.server.sites.values()):
+            for site_check in list(self.server.getSites().values()):
                 if site_check.settings["wrapper_key"] == wrapper_key:
                     site = site_check
 
@@ -841,7 +841,7 @@ class UiRequest(object):
                 self.server.websockets.append(ui_websocket)
                 ui_websocket.start()
                 self.server.websockets.remove(ui_websocket)
-                for site_check in list(self.server.sites.values()):
+                for site_check in list(self.server.getSites().values()):
                     # Remove websocket from every site (admin sites allowed to join other sites event channels)
                     if ui_websocket in site_check.websockets:
                         site_check.websockets.remove(ui_websocket)
@@ -867,11 +867,11 @@ class UiRequest(object):
     # Just raise an error to get console
     def actionConsole(self):
         import sys
-        sites = self.server.sites
+        sites = self.server.getSites()
         main = sys.modules["main"]
 
         def bench(code, times=100, init=None):
-            sites = self.server.sites
+            sites = self.server.getSites()
             main = sys.modules["main"]
             s = time.time()
             if init:

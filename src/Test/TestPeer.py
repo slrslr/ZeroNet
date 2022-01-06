@@ -13,7 +13,7 @@ from . import Spy
 @pytest.mark.usefixtures("resetTempSettings")
 class TestPeer:
     def testPing(self, file_server, site, site_temp):
-        file_server.sites[site.address] = site
+        file_server.getSites()[site.address] = site
         client = FileServer(file_server.ip, 1545)
         client.sites = {site_temp.address: site_temp}
         site_temp.connection_server = client
@@ -32,7 +32,7 @@ class TestPeer:
         client.stop()
 
     def testDownloadFile(self, file_server, site, site_temp):
-        file_server.sites[site.address] = site
+        file_server.getSites()[site.address] = site
         client = FileServer(file_server.ip, 1545)
         client.sites = {site_temp.address: site_temp}
         site_temp.connection_server = client
@@ -77,11 +77,11 @@ class TestPeer:
 
     def testHashfieldExchange(self, file_server, site, site_temp):
         server1 = file_server
-        server1.sites[site.address] = site
+        server1.getSites()[site.address] = site
         site.connection_server = server1
 
         server2 = FileServer(file_server.ip, 1545)
-        server2.sites[site_temp.address] = site_temp
+        server2.getSites()[site_temp.address] = site_temp
         site_temp.connection_server = server2
         site.storage.verifyFiles(quick_check=True)  # Find what optional files we have
 
@@ -127,7 +127,7 @@ class TestPeer:
         server2.stop()
 
     def testFindHash(self, file_server, site, site_temp):
-        file_server.sites[site.address] = site
+        file_server.getSites()[site.address] = site
         client = FileServer(file_server.ip, 1545)
         client.sites = {site_temp.address: site_temp}
         site_temp.connection_server = client

@@ -33,7 +33,7 @@ class FileRequest(object):
         self.connection = connection
 
         self.req_id = None
-        self.sites = self.server.sites
+        self.sites = self.server.getSites()
         self.log = server.log
         self.responded = False  # Responded to the request
 

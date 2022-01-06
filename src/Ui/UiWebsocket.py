@@ -330,7 +330,7 @@ class UiWebsocket(object):
         if not self.hasSitePermission(address, cmd=cmd):
             return self.response(to, "No permission for site %s" % address)
         req_self = copy.copy(self)
-        req_self.site = self.server.sites.get(address)
+        req_self.site = self.server.getSites().get(address)
         req_self.hasCmdPermission = self.hasCmdPermission  # Use the same permissions as current site
         req_obj = super(UiWebsocket, req_self)
         req = {"id": to, "cmd": cmd, "params": params}
@@ -388,7 +388,7 @@ class UiWebsocket(object):
     def actionAnnouncerStats(self, to):
         back = {}
         trackers = self.site.announcer.getTrackers()
-        for site in list(self.server.sites.values()):
+        for site in list(self.server.getSites().values()):
             for tracker, stats in site.announcer.stats.items():
                 if tracker not in trackers:
                     continue
@@ -894,7 +894,7 @@ class UiWebsocket(object):
     @flag.admin
     def actionSiteList(self, to, connecting_sites=False):
         ret = []
-        for site in list(self.server.sites.values()):
+        for site in list(self.server.getSites().values()):
             if not site.content_manager.contents.get("content.json") and not connecting_sites:
                 continue  # Incomplete site
             ret.append(self.formatSiteInfo(site, create_user=False))  # Dont generate the auth_address on listing
@@ -906,7 +906,7 @@ class UiWebsocket(object):
         if channel not in self.channels:  # Add channel to channels
             self.channels.append(channel)
 
-        for site in list(self.server.sites.values()):  # Add websocket to every channel
+        for site in list(self.server.getSites().values()):  # Add websocket to every channel
             if self not in site.websockets:
                 site.websockets.append(self)
 
@@ -918,7 +918,7 @@ class UiWebsocket(object):
             site.update(announce=announce, check_files=check_files, verify_files=verify_files, since=since)
             self.response(to, "Updated")
 
-        site = self.server.sites.get(address)
+        site = self.server.getSites().get(address)
         if site and (site.address == self.site.address or "ADMIN" in self.site.settings["permissions"]):
             if not site.settings["serving"]:
                 site.settings["serving"] = True
@@ -931,7 +931,7 @@ class UiWebsocket(object):
     # Pause site serving
     @flag.admin
     def actionSitePause(self, to, address):
-        site = self.server.sites.get(address)
+        site = self.server.getSites().get(address)
         if site:
             site.settings["serving"] = False
             site.saveSettings()
@@ -944,7 +944,7 @@ class UiWebsocket(object):
     # Resume site serving
     @flag.admin
     def actionSiteResume(self, to, address):
-        site = self.server.sites.get(address)
+        site = self.server.getSites().get(address)
         if site:
             site.settings["serving"] = True
             site.saveSettings()
@@ -958,7 +958,7 @@ class UiWebsocket(object):
     @flag.admin
     @flag.no_multiuser
     def actionSiteDelete(self, to, address):
-        site = self.server.sites.get(address)
+        site = self.server.getSites().get(address)
         if site:
             site.delete()
             self.user.deleteSiteData(address)
@@ -970,10 +970,10 @@ class UiWebsocket(object):
 
     def cbSiteClone(self, to, address, root_inner_path="", target_address=None, redirect=True):
         self.cmd("notification", ["info", _["Cloning site..."]])
-        site = self.server.sites.get(address)
+        site = self.server.getSites().get(address)
         response = {}
         if target_address:
-            target_site = self.server.sites.get(target_address)
+            target_site = self.server.getSites().get(target_address)
             privatekey = self.user.getSiteData(target_site.address).get("privatekey")
             site.clone(target_address, privatekey, root_inner_path=root_inner_path)
             self.cmd("notification", ["done", _["Site source code upgraded!"]])
@@ -999,11 +999,11 @@ class UiWebsocket(object):
             self.response(to, {"error": "Not a site: %s" % address})
             return
 
-        if not self.server.sites.get(address):
+        if not self.server.getSites().get(address):
             # Don't expose site existence
             return
 
-        site = self.server.sites.get(address)
+        site = self.server.getSites().get(address)
         if site.bad_files:
             for bad_inner_path in list(site.bad_files.keys()):
                 is_user_file = "cert_signers" in site.content_manager.getRules(bad_inner_path)

@@ -75,7 +75,7 @@ class TestTor:
         assert file_server.getConnection(address + ".onion", 1544, site=site) != file_server.getConnection(address + ".onion", 1544, site=site_temp)
 
         # Only allow to query from the locked site
-        file_server.sites[site.address] = site
+        file_server.getSites()[site.address] = site
         connection_locked = file_server.getConnection(address + ".onion", 1544, site=site)
         assert "body" in connection_locked.request("getFile", {"site": site.address, "inner_path": "content.json", "location": 0})
         assert connection_locked.request("getFile", {"site": "1OTHERSITE", "inner_path": "content.json", "location": 0})["error"] == "Invalid site"
@@ -83,11 +83,11 @@ class TestTor:
     def testPex(self, file_server, site, site_temp):
         # Register site to currently running fileserver
         site.connection_server = file_server
-        file_server.sites[site.address] = site
+        file_server.getSites()[site.address] = site
         # Create a new file server to emulate new peer connecting to our peer
         file_server_temp = FileServer(file_server.ip, 1545)
         site_temp.connection_server = file_server_temp
-        file_server_temp.sites[site_temp.address] = site_temp
+        file_server_temp.getSites()[site_temp.address] = site_temp
 
         # We will request peers from this
         peer_source = site_temp.addPeer(file_server.ip, 1544)
@@ -113,7 +113,7 @@ class TestTor:
 
     def testFindHash(self, tor_manager, file_server, site, site_temp):
         file_server.ip_incoming = {}  # Reset flood protection
-        file_server.sites[site.address] = site
+        file_server.getSites()[site.address] = site
         file_server.tor_manager = tor_manager
 
         client = FileServer(file_server.ip, 1545)

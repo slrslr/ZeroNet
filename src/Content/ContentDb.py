@@ -82,7 +82,7 @@ class ContentDb(Db):
         return schema
 
     def initSite(self, site):
-        self.sites[site.address] = site
+        self.getSites()[site.address] = site
 
     def needSite(self, site):
         if site.address not in self.site_ids:
@@ -97,7 +97,7 @@ class ContentDb(Db):
         if site_id:
             self.execute("DELETE FROM site WHERE site_id = :site_id", {"site_id": site_id})
             del self.site_ids[site.address]
-            del self.sites[site.address]
+            del self.getSites()[site.address]
 
     def setContent(self, site, inner_path, content, size=0):
         self.insertOrUpdate("content", {

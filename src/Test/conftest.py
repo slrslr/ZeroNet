@@ -219,7 +219,7 @@ def site(request):
     site = Site("1TeSTvb4w2PWE81S2rEELgmX2GCCExQGT")  # Create new Site object to load content.json files
     if not SiteManager.site_manager.sites:
         SiteManager.site_manager.sites = {}
-    SiteManager.site_manager.sites["1TeSTvb4w2PWE81S2rEELgmX2GCCExQGT"] = site
+    SiteManager.site_manager.getSites()["1TeSTvb4w2PWE81S2rEELgmX2GCCExQGT"] = site
     site.settings["serving"] = True
     return site
 

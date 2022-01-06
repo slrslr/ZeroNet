@@ -16,7 +16,7 @@ class TestFileRequest:
         client = ConnectionServer(file_server.ip, 1545)
 
         connection = client.getConnection(file_server.ip, 1544)
-        file_server.sites[site.address] = site
+        file_server.getSites()[site.address] = site
 
         # Normal request
         response = connection.request("getFile", {"site": site.address, "inner_path": "content.json", "location": 0})
@@ -61,7 +61,7 @@ class TestFileRequest:
         file_server.ip_incoming = {}  # Reset flood protection
         client = ConnectionServer(file_server.ip, 1545)
         connection = client.getConnection(file_server.ip, 1544)
-        file_server.sites[site.address] = site
+        file_server.getSites()[site.address] = site
 
         buff = io.BytesIO()
         response = connection.request("streamFile", {"site": site.address, "inner_path": "content.json", "location": 0}, buff)
@@ -89,7 +89,7 @@ class TestFileRequest:
         client.stop()
 
     def testPex(self, file_server, site, site_temp):
-        file_server.sites[site.address] = site
+        file_server.getSites()[site.address] = site
         client = FileServer(file_server.ip, 1545)
         client.sites = {site_temp.address: site_temp}
         site_temp.connection_server = client

@@ -23,7 +23,7 @@ class TestSiteDownload:
 
         # Init source server
         site.connection_server = file_server
-        file_server.sites[site.address] = site
+        file_server.getSites()[site.address] = site
 
         # Init client server
         client = FileServer(file_server.ip, 1545)
@@ -74,7 +74,7 @@ class TestSiteDownload:
 
         # Init source server
         site.connection_server = file_server
-        file_server.sites[site.address] = site
+        file_server.getSites()[site.address] = site
 
         # Init client server
         client = FileServer(file_server.ip, 1545)
@@ -130,7 +130,7 @@ class TestSiteDownload:
     def testArchivedDownload(self, file_server, site, site_temp):
         # Init source server
         site.connection_server = file_server
-        file_server.sites[site.address] = site
+        file_server.getSites()[site.address] = site
 
         # Init client server
         client = FileServer(file_server.ip, 1545)
@@ -178,7 +178,7 @@ class TestSiteDownload:
     def testArchivedBeforeDownload(self, file_server, site, site_temp):
         # Init source server
         site.connection_server = file_server
-        file_server.sites[site.address] = site
+        file_server.getSites()[site.address] = site
 
         # Init client server
         client = FileServer(file_server.ip, 1545)
@@ -229,7 +229,7 @@ class TestSiteDownload:
     def testOptionalDownload(self, file_server, site, site_temp):
         # Init source server
         site.connection_server = file_server
-        file_server.sites[site.address] = site
+        file_server.getSites()[site.address] = site
 
         # Init client server
         client = ConnectionServer(file_server.ip, 1545)
@@ -271,7 +271,7 @@ class TestSiteDownload:
     def testFindOptional(self, file_server, site, site_temp):
         # Init source server
         site.connection_server = file_server
-        file_server.sites[site.address] = site
+        file_server.getSites()[site.address] = site
 
         # Init full source server (has optional files)
         site_full = Site("1TeSTvb4w2PWE81S2rEELgmX2GCCExQGT")
@@ -284,7 +284,7 @@ class TestSiteDownload:
 
         gevent.spawn(listen)
         time.sleep(0.001)  # Port opening
-        file_server_full.sites[site_full.address] = site_full  # Add site
+        file_server_full.getSites()[site_full.address] = site_full  # Add site
         site_full.storage.verifyFiles(quick_check=True)  # Check optional files
         site_full_peer = site.addPeer(file_server.ip, 1546)  # Add it to source server
         hashfield = site_full_peer.updateHashfield()  # Update hashfield
@@ -342,7 +342,7 @@ class TestSiteDownload:
 
         # Init source server
         site.connection_server = file_server
-        file_server.sites[site.address] = site
+        file_server.getSites()[site.address] = site
 
         # Init client server
         client = FileServer(file_server.ip, 1545)
@@ -423,7 +423,7 @@ class TestSiteDownload:
     def testBigUpdate(self, file_server, site, site_temp):
         # Init source server
         site.connection_server = file_server
-        file_server.sites[site.address] = site
+        file_server.getSites()[site.address] = site
 
         # Init client server
         client = FileServer(file_server.ip, 1545)
@@ -476,7 +476,7 @@ class TestSiteDownload:
     def testHugeContentSiteUpdate(self, file_server, site, site_temp):
         # Init source server
         site.connection_server = file_server
-        file_server.sites[site.address] = site
+        file_server.getSites()[site.address] = site
 
         # Init client server
         client = FileServer(file_server.ip, 1545)
@@ -524,7 +524,7 @@ class TestSiteDownload:
 
         # Init source server
         site.connection_server = file_server
-        file_server.sites[site.address] = site
+        file_server.getSites()[site.address] = site
 
         # Init client server
         client = FileServer(file_server.ip, 1545)
