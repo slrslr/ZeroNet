@@ -388,8 +388,12 @@ class SiteStorage(object):
     # Load and parse json file
     @thread_pool_fs_read.wrap
     def loadJson(self, inner_path):
-        with self.open(inner_path, "r", encoding="utf8") as file:
-            return json.load(file)
+        try :
+            with self.open(inner_path) as file:
+                return json.load(file)
+        except Exception as err:
+            self.log.error("Json load error: %s" % Debug.formatException(err))
+            return None
 
     # Write formatted json file
     def writeJson(self, inner_path, data):
