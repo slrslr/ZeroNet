@@ -1,4 +1,4 @@
-# ZeroNet [![tests](https://github.com/canewsin/ZeroNet/actions/workflows/tests.yml/badge.svg)](https://github.com/canewsin/ZeroNet/actions/workflows/tests.yml) [![Documentation](https://img.shields.io/badge/docs-faq-brightgreen.svg)](https://zeronet.io/docs/faq/) [![Help](https://img.shields.io/badge/keep_this_project_alive-donate-yellow.svg)](https://zeronet.io/docs/help_zeronet/donate/) [![Docker Pulls](https://img.shields.io/docker/pulls/canewsin/zeronet)](https://hub.docker.com/r/canewsin/zeronet)
+# ZeroNet [![tests](https://github.com/ZeroNetX/ZeroNet/actions/workflows/tests.yml/badge.svg)](https://github.com/ZeroNetX/ZeroNet/actions/workflows/tests.yml) [![Documentation](https://img.shields.io/badge/docs-faq-brightgreen.svg)](https://zeronet.dev/docs/faq/) [![Help](https://img.shields.io/badge/keep_this_project_alive-donate-yellow.svg)](https://zeronet.dev/docs/help_zeronet/donate/) [![Docker Pulls](https://img.shields.io/docker/pulls/canewsin/zeronet)](https://hub.docker.com/r/canewsin/zeronet)
 
 <!--TODO: Update Onion Site -->
 Decentralized websites using Bitcoin crypto and the BitTorrent network - https://zeronet.dev / [onion](http://zeronet34m3r5ngdu54uj57dcafpgdjhxsgq5kla5con4qvcmfzpvhad.onion)
@@ -47,35 +47,35 @@ Decentralized websites using Bitcoin crypto and the BitTorrent network - https:/
   other peers.
 
 ####  [Slideshow about ZeroNet cryptography, site updates, multi-user sites »](https://docs.google.com/presentation/d/1_2qK1IuOKJ51pgBvllZ9Yu7Au2l551t3XBgyTSvilew/pub?start=false&loop=false&delayms=3000)
-####  [Frequently asked questions »](https://zeronet.io/docs/faq/)
+####  [Frequently asked questions »](https://zeronet.dev/docs/faq/)
 
-####  [ZeroNet Developer Documentation »](https://zeronet.io/docs/site_development/getting_started/)
+####  [ZeroNet Developer Documentation »](https://zeronet.dev/docs/site_development/getting_started/)
 
 
 ## Screenshots
 
 ![Screenshot](https://i.imgur.com/H60OAHY.png)
-![ZeroTalk](https://zeronet.io/docs/img/zerotalk.png)
+![ZeroTalk](https://zeronet.dev/docs/img/zerotalk.png)
 
-#### [More screenshots in ZeroNet docs »](https://zeronet.io/docs/using_zeronet/sample_sites/)
+#### [More screenshots in ZeroNet docs »](https://zeronet.dev/docs/using_zeronet/sample_sites/)
 
 
 ## How to join
 
 ### Windows
 
- - Download [ZeroNet-py3-win64.zip](https://github.com/HelloZeroNet/ZeroNet-win/archive/dist-win64/ZeroNet-py3-win64.zip) (18MB)
+ - Download [ZeroNet-py3-win64.zip](https://github.com/ZeroNetX/ZeroNet-win/archive/dist-win64/ZeroNet-py3-win64.zip) (18MB)
  - Unpack anywhere
  - Run `ZeroNet.exe`
  
 ### macOS
 
- - Download [ZeroNet-dist-mac.zip](https://github.com/HelloZeroNet/ZeroNet-dist/archive/mac/ZeroNet-dist-mac.zip) (13.2MB)
+ - Download [ZeroNet-dist-mac.zip](https://github.com/ZeroNetX/ZeroNet-dist/archive/mac/ZeroNet-dist-mac.zip) (13.2MB)
  - Unpack anywhere
  - Run `ZeroNet.app`
  
 ### Linux (x86-64bit)
- - `wget https://github.com/HelloZeroNet/ZeroNet-linux/archive/dist-linux64/ZeroNet-py3-linux64.tar.gz`
+ - `wget https://github.com/ZeroNetX/ZeroNet-linux/archive/dist-linux64/ZeroNet-py3-linux64.tar.gz`
  - `tar xvpfz ZeroNet-py3-linux64.tar.gz`
  - `cd ZeroNet-linux-dist-linux64/`
  - Start with: `./ZeroNet.sh`
@@ -89,14 +89,21 @@ Decentralized websites using Bitcoin crypto and the BitTorrent network - https:/
       alt="Download from Google Play" 
       height="80">](https://play.google.com/store/apps/details?id=in.canews.zeronetmobile)
  - APK download: https://github.com/canewsin/zeronet_mobile/releases
- - XDA Labs: https://labs.xda-developers.com/store/app/in.canews.zeronet
  
+  
+ ### Android (arm, arm64, x86) Thin Client for Preview Only
+ - minimum Android version supported 16 (JellyBean)
+ - [<img src="https://play.google.com/intl/en_us/badges/images/generic/en_badge_web_generic.png" 
+      alt="Download from Google Play" 
+      height="80">](https://play.google.com/store/apps/details?id=dev.zeronetx.app.lite)
+
+
 #### Docker
 There is an official image, built from source at: https://hub.docker.com/r/canewsin/zeronet/
 
 ### Install from source
 
- - `wget https://github.com/HelloZeroNet/ZeroNet/archive/py3/ZeroNet-py3.tar.gz`
+ - `wget https://github.com/ZeroNetX/ZeroNet/archive/py3/ZeroNet-py3.tar.gz`
  - `tar xvpfz ZeroNet-py3.tar.gz`
  - `cd ZeroNet-py3`
  - `sudo apt-get update`
@@ -107,9 +114,7 @@ There is an official image, built from source at: https://hub.docker.com/r/canew
 
 ## Current limitations
 
-* ~~No torrent-like file splitting for big file support~~ (big file support added)
-* ~~No more anonymous than Bittorrent~~ (built-in full Tor support added)
-* File transactions are not compressed ~~or encrypted yet~~ (TLS encryption added)
+* File transactions are not compressed
 * No private sites
 
 
@@ -120,19 +125,16 @@ There is an official image, built from source at: https://hub.docker.com/r/canew
  * You can find and modify your site's content in **data/[yoursiteaddress]** directory
  * After the modifications open your site, drag the topright "0" button to left, then press **sign** and **publish** buttons on the bottom
 
-Next steps: [ZeroNet Developer Documentation](https://zeronet.io/docs/site_development/getting_started/)
+Next steps: [ZeroNet Developer Documentation](https://zeronet.dev/docs/site_development/getting_started/)
 
 ## Help keep this project alive
 
 - Bitcoin: 1ZeroNetyV5mKY9JF1gsm82TuBXHpfdLX
-- Paypal: https://zeronet.io/docs/help_zeronet/donate/
+- Paypal: https://zeronet.dev/docs/help_zeronet/donate/
 
-### Sponsors
-
-* Better macOS/Safari compatibility made possible by [BrowserStack.com](https://www.browserstack.com)
 
 #### Thank you!
 
-* More info, help, changelog, zeronet sites: https://www.reddit.com/r/zeronet/
+* More info, help, changelog, zeronet sites: https://www.reddit.com/r/zeronetx/
 * Come, chat with us: [#zeronet @ FreeNode](https://kiwiirc.com/client/irc.freenode.net/zeronet) or on [gitter](https://gitter.im/canewsin/ZeroNet)
 * Email: canews.in@gmail.com
