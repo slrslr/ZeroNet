@@ -591,7 +591,7 @@ class Connection(object):
         buff = 64 * 1024
         bytes_left = read_bytes
         bytes_sent = 0
-        while True:
+        while True and self.sock != None:
             self.last_send_time = time.time()
             data = file.read(min(bytes_left, buff))
             bytes_sent += len(data)
