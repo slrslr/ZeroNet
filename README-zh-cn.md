@@ -58,21 +58,21 @@
 
 ### Windows
 
- - 下载 [ZeroNet-py3-win64.zip](https://github.com/ZeroNetX/ZeroNet-win/archive/dist-win64/ZeroNet-py3-win64.zip) (18MB)
+ - 下载 [ZeroNet-win.zip](https://github.com/ZeroNetX/ZeroNet/releases/latest/download/ZeroNet-win.zip) (26MB)
  - 在任意位置解压缩
  - 运行 `ZeroNet.exe`
  
 ### macOS
 
- - 下载 [ZeroNet-dist-mac.zip](https://github.com/ZeroNetX/ZeroNet-dist/archive/mac/ZeroNet-dist-mac.zip) (13.2MB)
+ - 下载 [ZeroNet-mac.zip](https://github.com/ZeroNetX/ZeroNet/releases/latest/download/ZeroNet-mac.zip) (14MB)
  - 在任意位置解压缩
  - 运行 `ZeroNet.app`
  
 ### Linux (x86-64bit)
 
- - `wget https://github.com/ZeroNetX/ZeroNet-linux/archive/dist-linux64/ZeroNet-py3-linux64.tar.gz`
- - `tar xvpfz ZeroNet-py3-linux64.tar.gz`
- - `cd ZeroNet-linux-dist-linux64/`
+ - `wget https://github.com/ZeroNetX/ZeroNet/releases/latest/download/ZeroNet-linux.zip`
+ - `unzip ZeroNet-linux.zip`
+ - `cd ZeroNet-linux`
  - 使用以下命令启动 `./ZeroNet.sh`
  - 在浏览器打开 http://127.0.0.1:43110/ 即可访问 ZeroHello 页面
  
@@ -80,9 +80,9 @@
 
 ### 从源代码安装
 
- - `wget https://github.com/ZeroNetX/ZeroNet/archive/py3/ZeroNet-py3.tar.gz`
- - `tar xvpfz ZeroNet-py3.tar.gz`
- - `cd ZeroNet-py3`
+ - `wget https://github.com/ZeroNetX/ZeroNet/releases/latest/download/ZeroNet-src.zip`
+ - `unzip ZeroNet-src.zip`
+ - `cd ZeroNet`
  - `sudo apt-get update`
  - `sudo apt-get install python3-pip`
  - `sudo python3 -m pip install -r requirements.txt`
@@ -118,9 +118,10 @@
 接下来的步骤：[ZeroNet 开发者文档](https://docs.zeronet.dev/1DeveLopDZL1cHfKi8UXHh2UBEhzH6HhMp/site_development/getting_started/)
 
 ## 帮助这个项目
-
-- Bitcoin: 1ZeroNetyV5mKY9JF1gsm82TuBXHpfdLX
-- Paypal: [Donate](!https://docs.zeronet.dev/1DeveLopDZL1cHfKi8UXHh2UBEhzH6HhMp/help_zeronet/donate/#help-to-keep-zeronet-development-alive)
+- Bitcoin: 1ZeroNetyV5mKY9JF1gsm82TuBXHpfdLX (Preferred)
+- LiberaPay: https://liberapay.com/PramUkesh
+- Paypal: https://paypal.me/PramUkesh
+- Others: [Donate](!https://docs.zeronet.dev/1DeveLopDZL1cHfKi8UXHh2UBEhzH6HhMp/help_zeronet/donate/#help-to-keep-zeronet-development-alive)
 
 
 #### 感谢您！

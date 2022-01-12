@@ -61,27 +61,27 @@
 ## Как вступить
 
 * Скачайте ZeroBundle пакет:
-  * [Microsoft Windows](https://github.com/ZeroNetX/ZeroNet-win/archive/dist/ZeroNet-win.zip)
-  * [Apple macOS](https://github.com/ZeroNetX/ZeroNet-mac/archive/dist/ZeroNet-mac.zip)
-  * [Linux 64-bit](https://github.com/ZeroNetX/ZeroBundle/raw/master/dist/ZeroBundle-linux64.tar.gz)
-  * [Linux 32-bit](https://github.com/ZeroNetX/ZeroBundle/raw/master/dist/ZeroBundle-linux32.tar.gz)
+  * [Microsoft Windows](https://github.com/ZeroNetX/ZeroNet/releases/latest/download/ZeroNet-win.zip)
+  * [Apple macOS](https://github.com/ZeroNetX/ZeroNet/releases/latest/download/ZeroNet-mac.zip)
+  * [Linux 64-bit](https://github.com/ZeroNetX/ZeroNet/releases/latest/download/ZeroNet-linux.zip)
+  * [Linux 32-bit](https://github.com/ZeroNetX/ZeroNet/releases/latest/download/ZeroNet-linux.zip)
 * Распакуйте где угодно
 * Запустите `ZeroNet.exe` (win), `ZeroNet(.app)` (osx), `ZeroNet.sh` (linux)
 
 ### Linux терминал
 
-* `wget https://github.com/ZeroNetX/ZeroNet-linux/archive/dist-linux64/ZeroNet-py3-linux64.tar.gz`
-* `tar xvpfz ZeroNet-py3-linux64.tar.gz`
-* `cd ZeroNet-linux-dist-linux64/`
+* `wget https://github.com/ZeroNetX/ZeroNet/releases/latest/download/ZeroNet-linux.zip`
+* `unzip ZeroNet-linux.zip`
+* `cd ZeroNet-linux`
 * Запустите с помощью `./ZeroNet.sh`
 
 Он загружает последнюю версию ZeroNet, затем запускает её автоматически.
 
 #### Ручная установка для Debian Linux
 
-* `wget https://github.com/ZeroNetX/ZeroNet/archive/py3/ZeroNet-py3.tar.gz`
-* `tar xvpfz ZeroNet-py3.tar.gz`
-* `cd ZeroNet-py3`
+* `wget https://github.com/ZeroNetX/ZeroNet/releases/latest/download/ZeroNet-src.zip`
+* `unzip ZeroNet-src.zip`
+* `cd ZeroNet`
 * `sudo apt-get update`
 * `sudo apt-get install python3-pip`
 * `sudo python3 -m pip install -r requirements.txt`
@@ -123,11 +123,11 @@ article](https://wiki.archlinux.org/index.php/ZeroNet) для дальнейше
 * `vagrant up`
 * Подключитесь к VM с помощью `vagrant ssh`
 * `cd /vagrant`
-* Запустите `python2 zeronet.py --ui_ip 0.0.0.0`
+* Запустите `python3 zeronet.py --ui_ip 0.0.0.0`
 * Откройте http://127.0.0.1:43110/ в вашем браузере.
 
 ### [Docker](https://www.docker.com/)
-* `docker run -d -v <local_data_folder>:/root/data -p 15441:15441 -p 127.0.0.1:43110:43110 nofish/zeronet`
+* `docker run -d -v <local_data_folder>:/root/data -p 15441:15441 -p 127.0.0.1:43110:43110 canewsin/zeronet`
 * Это изображение Docker включает в себя прокси-сервер Tor, который по умолчанию отключён.
   Остерегайтесь что некоторые хостинг-провайдеры могут не позволить вам запускать Tor на своих серверах.
   Если вы хотите включить его,установите переменную среды `ENABLE_TOR` в` true` (по умолчанию: `false`) Например:
@@ -195,9 +195,10 @@ Site:13DNDk..bhC2 Successfuly published to 3 peers
 
 
 ## Поддержите проект
-<!--TODO: Add liberapay -->
-- Bitcoin: 1ZeroNetyV5mKY9JF1gsm82TuBXHpfdLX
-- Paypal: [Donate](!https://docs.zeronet.dev/1DeveLopDZL1cHfKi8UXHh2UBEhzH6HhMp/help_zeronet/donate/#help-to-keep-zeronet-development-alive)
+- Bitcoin: 1ZeroNetyV5mKY9JF1gsm82TuBXHpfdLX (Preferred)
+- LiberaPay: https://liberapay.com/PramUkesh
+- Paypal: https://paypal.me/PramUkesh
+- Others: [Donate](!https://docs.zeronet.dev/1DeveLopDZL1cHfKi8UXHh2UBEhzH6HhMp/help_zeronet/donate/#help-to-keep-zeronet-development-alive)
 
 
 #### Спасибо!
