@@ -8,7 +8,7 @@ from .User import User
 from Plugin import PluginManager
 from Config import config
 
-
+# Fully Implemented in zeronet-rs::src::io::utils.rs & zeronet-rs::src::io::user.rs
 @PluginManager.acceptPlugins
 class UserManager(object):
     def __init__(self):
