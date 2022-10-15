@@ -12,7 +12,7 @@ from Config import config
 from util import helper
 from Debug import Debug
 
-
+# Fully Implemented in zeronet-rs::src::core::user.rs
 @PluginManager.acceptPlugins
 class User(object):
     def __init__(self, master_address=None, master_seed=None, data={}):
