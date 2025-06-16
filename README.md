@@ -102,11 +102,13 @@ There is an official image, built from source at: https://hub.docker.com/r/canew
 ### Online Proxies
 Proxies are like seed boxes for sites(i.e ZNX runs on a cloud vps), you can try zeronet experience from proxies. Add your proxy below if you have one.
 
+<!--
 #### Official ZNX Proxy : 
 
 https://proxy.zeronet.dev/
 
 https://zeronet.dev/
+-->
 
 #### From Community
 
@@ -118,15 +120,20 @@ https://zeronet.ipfsscan.io/
 
 
 ### Install from source
-
  - `wget https://github.com/ZeroNetX/ZeroNet/releases/latest/download/ZeroNet-src.zip`
- - `unzip ZeroNet-src.zip`
+ - `sudo apt install unzip && unzip ZeroNet-src.zip`
  - `cd ZeroNet`
  - `sudo apt-get update`
  - `sudo apt-get install python3-pip`
  - `sudo python3 -m pip install -r requirements.txt`
+ - > Above command should output "Successfully installed {Package Names Here...}" without any errors, Incase of any errors try this command for required dependencies
+   > 
+   > `sudo apt install git autoconf pkg-config libffi-dev python3-pip python3-venv python3-dev build-essential libtool`
+   > 
+   > and rerun `sudo python3 -m pip install -r requirements.txt`
  - Start with: `python3 zeronet.py`
  - Open the ZeroHello landing page in your browser by navigating to: http://127.0.0.1:43110/
+   
 
 ## Current limitations
 
