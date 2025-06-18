@@ -5,20 +5,20 @@
  "domain": "Blog.ZeroNetwork.bit",
  "files": {
   "css/all.css": {
-   "sha512": "65ddd3a2071a0f48c34783aa3b1bde4424bdea344630af05a237557a62bd55dc",
-   "size": 112710
+   "sha512": "fcca6465c91188993b597a12a3fb75c9cf7a5c9371276ca6c6c014a2809d3ad1",
+   "size": 113094
   },
   "data-default/data.json": {
-   "sha512": "3f5c5a220bde41b464ab116cce0bd670dd0b4ff5fe4a73d1dffc4719140038f2",
-   "size": 196
+   "sha512": "1a11aae6e183f3fb2026763b014047edc933c3a27bfab5da63daecf998f116aa",
+   "size": 205
   },
   "data-default/users/content-default.json": {
-   "sha512": "0603ce08f7abb92b3840ad0cf40e95ea0b3ed3511b31524d4d70e88adba83daa",
-   "size": 679
+   "sha512": "37b11e263d4f572555f8a1cb27f1d3df27beebf29275152773b9e239092bed63",
+   "size": 703
   },
   "data/data.json": {
-   "sha512": "0f2321c905b761a05c360a389e1de149d952b16097c4ccf8310158356e85fb52",
-   "size": 31126
+   "sha512": "a7919a78587627676983978969d6457eb351da51ed1355c588885138baba7b85",
+   "size": 31369
   },
   "data/img/autoupdate.png": {
    "sha512": "d2b4dc8e0da2861ea051c0c13490a4eccf8933d77383a5b43de447c49d816e71",
@@ -57,20 +57,20 @@
    "size": 19040
   },
   "dbschema.json": {
-   "sha512": "2e9466d8aa1f340c91203b4ddbe9b6669879616a1b8e9571058a74195937598d",
-   "size": 1527
+   "sha512": "ae8faee10e5e7c7edb976772a692fc91b4a67bd5b8647e7953f06d3eea648374",
+   "size": 1580
   },
   "img/loading.gif": {
    "sha512": "8a42b98962faea74618113166886be488c09dad10ca47fe97005edc5fb40cc00",
    "size": 723
   },
   "index.html": {
-   "sha512": "c4039ebfc4cb6f116cac05e803a18644ed70404474a572f0d8473f4572f05df3",
-   "size": 4667
+   "sha512": "607317eb5744be5f538b0dc464f6c90dc7a1c2a0e3e00db05cecad86b8e7c556",
+   "size": 4804
   },
   "js/all.js": {
-   "sha512": "034c97535f3c9b3fbebf2dcf61a38711dae762acf1a99168ae7ddc7e265f582c",
-   "size": 201178
+   "sha512": "f801cdd7f507a53bb0a8a32e2ce3d54593e47111bf7693c8232722c33809f8aa",
+   "size": 203070
   }
  },
  "files_optional": {
@@ -121,13 +121,11 @@
   }
  },
  "inner_path": "content.json",
- "modified": 1503257990,
+ "modified": 1750187145,
  "optional": "(data/img/zero.*|data/optional.*)",
  "signers_sign": "HDNmWJHM2diYln4pkdL+qYOvgE7MdwayzeG+xEUZBgp1HtOjBJS+knDEVQsBkjcOPicDG2it1r6R1eQrmogqSP0=",
- "signs": {
-  "1TeSTvb4w2PWE81S2rEELgmX2GCCExQGT": "G4Uq365UBliQG66ygip1jNGYqW6Eh9Mm7nLguDFqAgk/Hksq/ruqMf9rXv78mgUfPBvL2+XgDKYvFDtlykPFZxk="
- },
+ "signs": {"1TeSTvb4w2PWE81S2rEELgmX2GCCExQGT": "HOsyeVPi41tqrLgBcn8blO+m73nAmsOCFOloTbhDZpRkW2hPH6/22Qd876wq83hVHgM5mGaVmq/+5DkkJRYGN8c="},
  "signs_required": 1,
  "title": "ZeroBlog",
- "zeronet_version": "0.5.7"
+ "zeronet_version": "0.9.1"
 }

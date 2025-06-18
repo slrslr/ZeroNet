@@ -1,15 +1,17 @@
 {
-  "cert_auth_type": "web", 
-  "cert_sign": "G4YB7y749GI6mJboyI7cNNfyMwOS0rcVXLmgq8qmCC4TCaRqup3TGWm8hzeru7+B5iXhq19Ruz286bNVKgNbnwU=", 
-  "cert_user_id": "newzeroid@zeroid.bit", 
-  "files": {
-    "data.json": {
-      "sha512": "2378ef20379f1db0c3e2a803bfbfda2b68515968b7e311ccc604406168969d34", 
-      "size": 161
-    }
-  }, 
-  "modified": 1432554679.913, 
-  "signs": {
-    "1C5sgvWaSgfaTpV5kjBCnCiKtENNMYo69q": "GzX/Ht6ms1dOnqB3kVENvDnxpH+mqA0Zlg3hWy0iwgxpyxWcA4zgmwxcEH41BN9RrvCaxgSd2m1SG1/8qbQPzDY="
+ "address": "1TeSTvb4w2PWE81S2rEELgmX2GCCExQGT",
+ "cert_auth_type": "web",
+ "cert_sign": "G4YB7y749GI6mJboyI7cNNfyMwOS0rcVXLmgq8qmCC4TCaRqup3TGWm8hzeru7+B5iXhq19Ruz286bNVKgNbnwU=",
+ "cert_user_id": "newzeroid@zeroid.bit",
+ "files": {
+  "data.json": {
+   "sha512": "b7405061554ff5c90a386362757d02adb11cf2a6eed0c14eafbc36dac0310b57",
+   "size": 172
   }
+ },
+ "inner_path": "data/users/1C5sgvWaSgfaTpV5kjBCnCiKtENNMYo69q/content.json",
+ "modified": 1750258419,
+ "signs": {
+  "1TeSTvb4w2PWE81S2rEELgmX2GCCExQGT": "G6EwTzXC/ok5G+/ZJ3xSfxQgz/bkcORe+EbHEVx6aoAVP9Dbo0kFyKqQtg35Pc7B6XcvrU9FZ17/pSCeyL6uDa0="
+ }
 }
