@@ -115,11 +115,11 @@ https://zeronet.dev/
 #### From Community
 
 https://0net-preview.com/
-
+<!--
 https://portal.ngnoid.tv/
 
 https://zeronet.ipfsscan.io/
-
+-->
 
 ### Install from source
  - `wget https://github.com/ZeroNetX/ZeroNet/releases/latest/download/ZeroNet-src.zip`
