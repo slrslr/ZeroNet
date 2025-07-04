@@ -29,3 +29,13 @@ class TestConfig:
         assert "1.2.3.4" in config_test.ui_restrict
         assert not config_test.use_openssl
         assert config_test.inner_path == "users/content.json"
+
+    def testExternalTrackers(self):
+        test = Config.Config("zeronet.py".split(" "))
+        test.loadExternalTrackers()
+        # Check if trackers_ext.txt exists in data directory
+        trackers_file_path = test.data_dir + "/trackers_ext.txt"
+        import os
+        assert os.path.exists(trackers_file_path)
+        # Check if trackers_ext.txt is not empty
+        assert os.path.getsize(trackers_file_path) > 0

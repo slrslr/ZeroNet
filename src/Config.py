@@ -317,9 +317,39 @@ class Config(object):
 
         return self.parser
 
+    def loadExternalTrackers(self):
+        import urllib.request
+        import logging
+
+        url = "https://raw.githubusercontent.com/ngosang/trackerslist/refs/heads/master/trackers_all_ip.txt"
+        trackers_file_path = os.path.join(self.data_dir, "trackers_ext.txt")
+        try:
+            response = urllib.request.urlopen(url)
+            trackers = [line.strip() for line in response.read().decode('utf-8').splitlines() if line.strip()]
+
+            os.makedirs(os.path.dirname(trackers_file_path), exist_ok=True)
+            # Read existing trackers into a set
+            if os.path.exists(trackers_file_path):
+                with open(trackers_file_path, "r") as f:
+                    file_trackers = {line.strip() for line in f if "://" in line}
+            else:
+                file_trackers = set()
+
+            # Write only new trackers
+            with open(trackers_file_path, "a") as f:
+                for tracker in trackers:
+                    if tracker and tracker not in file_trackers:
+                        f.write(tracker + "\n")
+                        file_trackers.add(tracker)  # Avoid duplicates in the same run
+        except Exception as err:
+            logging.error("Error loading external trackers: %s", err)
+            raise
+
     def loadTrackersFile(self):
+        self.loadExternalTrackers()  # Load external trackers
+
         if not self.trackers_file:
-            self.trackers_file = ["trackers.txt", "{data_dir}/1HELLoE3sFD9569CLCbHEAVqvqV7U2Ri9d/trackers.txt"]
+            self.trackers_file = ["trackers.txt", "trackers_ext.txt", "{data_dir}/1HELLoE3sFD9569CLCbHEAVqvqV7U2Ri9d/trackers.txt"]
         self.trackers = self.arguments.trackers[:]
 
         for trackers_file in self.trackers_file:
