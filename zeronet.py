@@ -27,7 +27,7 @@ def main():
         error_log_path = config.log_dir + "/error.log"
         traceback.print_exc(file=open(error_log_path, "w"))
         print("---")
-        print("Please report it: https://github.com/HelloZeroNet/ZeroNet/issues/new?assignees=&labels=&template=bug-report.md")
+        print("Please report it: https://github.com/ZeroNetX/ZeroNet/issues/new?assignees=&labels=&template=bug-report.md")
         if sys.platform.startswith("win") and "python.exe" not in sys.executable:
             displayErrorMessage(err, error_log_path)
 
