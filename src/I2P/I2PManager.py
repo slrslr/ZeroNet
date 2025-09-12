@@ -6,13 +6,13 @@ from gevent.pool import Pool
 from http.client import HTTPConnection
 import urllib.request, urllib.error, urllib.parse
 
-from i2p import socket
-from i2p.datatypes import Destination
-
 from Config import config
 from Site import SiteManager
 from Debug import Debug
 
+if config.i2p != "disable":
+    from i2p import socket
+    from i2p.datatypes import Destination
 
 class I2PHTTPConnection(HTTPConnection):
     def __init__(self, i2p_manager, site_address, *args, **kwargs):

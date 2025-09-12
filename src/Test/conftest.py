@@ -127,7 +127,10 @@ from Crypt import CryptConnection
 from Crypt import CryptBitcoin
 from Ui import UiWebsocket
 from Tor import TorManager
-from I2P import I2PManager
+
+if config.i2p != "disable":
+    from I2P import I2PManager
+
 from Content import ContentDb
 from util import RateLimit
 from Db import Db
